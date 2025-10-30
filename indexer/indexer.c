@@ -95,11 +95,32 @@ static hashtable_t* build_index(char* pageDir) {
         return NULL;
     }
 
-    int docID = 1;
+    int docID;
     webpage_t* page;
 
-    // Loop from docID 1 until pageload fails
-    while ((page = pageload(docID, pageDir)) != NULL) {
+    // --- MODIFIED LOOP LOGIC ---
+    // Loop from docID 1 upwards
+    for (docID = 1; ; docID++) {
+        page = pageload(docID, pageDir);
+
+        if (page == NULL) {
+            // pageload failed. Was it a corrupt file or the end of the list?
+            char filepath[256];
+            sprintf(filepath, "%s/%d", pageDir, docID);
+            
+            // Check if the file exists using access()
+            if (access(filepath, F_OK) != 0) {
+                // File does not exist (access returns -1). This is the end.
+                break; // Exit the for loop
+            } else {
+                // File *does* exist, but pageload failed. It's corrupt.
+                fprintf(stderr, "Warning: Skipping corrupt file %s/%d\n", pageDir, docID);
+                // Continue to the next docID
+                continue;
+            }
+        }
+        
+        // --- If pageload Succeeded ---
         printf("Processing page %d\n", docID);
         
         int pos = 0;
@@ -143,9 +164,10 @@ static hashtable_t* build_index(char* pageDir) {
             free(word); // webpage_getNextWord allocates memory for word
         }
         webpage_delete(page); // Free the page
-        docID++; // Move to the next page file
+        // docID is incremented by the for loop
     }
     
+    // docID will be one *past* the last valid file (e.g., 83)
     printf("Indexed %d pages.\n", docID - 1);
     return index;
 }
