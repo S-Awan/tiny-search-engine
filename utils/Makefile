@@ -1,7 +1,7 @@
 # Makefile for the 'utils' directory of the Tiny Search Engine (TSE)
 #
 # Author: Insecticide
-# Date: 10-19-2025
+# Date: 10-30-2025
 #
 
 # Compiler flags
@@ -11,7 +11,7 @@ CFLAGS = -Wall -pedantic -std=c11 -g
 LIB = ../lib/libutils.a
 
 # The object files that will be bundled into the library.
-OFILES = queue.o hash.o webpage.o
+OFILES = queue.o hash.o webpage.o pageio.o indexio.o
 
 # The default target, which is to build the library.
 all: $(LIB)
@@ -30,6 +30,12 @@ hash.o: hash.c hash.h queue.h
 
 webpage.o: webpage.c webpage.h
 	gcc $(CFLAGS) -c webpage.c -o webpage.o
+
+pageio.o: pageio.c pageio.h webpage.h
+	gcc $(CFLAGS) -c pageio.c -o pageio.o
+
+indexio.o: indexio.c indexio.h index.h hash.h queue.h
+	gcc $(CFLAGS) -c indexio.c -o indexio.o
 
 # A 'clean' rule to remove generated files.
 clean:
